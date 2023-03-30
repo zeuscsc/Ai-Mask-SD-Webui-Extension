@@ -33,17 +33,20 @@ class Script(scripts.Script):
         session_name=gr.inputs.Dropdown(["u2net", "u2netp","u2net_human_seg","u2net_cloth_seg","silueta"], label="Session")
         only_mask=gr.inputs.Checkbox(label="Only Mask")
         post_process_mask=gr.inputs.Checkbox(label="Post Process Mask")
-        image=gr.Image(type="pil")
-        mask=gr.Image(type="pil")
+        with gr.Blocks() as demo:
+            with gr.Row().style(equal_height=True):
+                image=gr.Image(type="pil")
+                mask=gr.Image(type="pil")
         btn = gr.Button(value="Preview Remove Background")
         if image is not None:
             btn.click(remove_background, inputs=[image,alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,\
                                                  alpha_matting_erode_size,session_name,only_mask,post_process_mask], outputs=[mask])
-        return [alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,alpha_matting_erode_size,session_name,\
+        return [image,alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,alpha_matting_erode_size,session_name,\
                 only_mask,post_process_mask]
-    def run(self,p,alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,alpha_matting_erode_size,session_name,\
+    def run(self,p,image,alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,alpha_matting_erode_size,session_name,\
                 only_mask,post_process_mask):
-        image=p.init_images[0]
+        if image is None:
+            image=p.init_images[0]
         only_mask=True
         mask=remove_background(image,alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,\
                                                  alpha_matting_erode_size,session_name,only_mask,post_process_mask)

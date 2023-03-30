@@ -21,7 +21,7 @@ def remove_background(image,alpha_matting,alpha_matting_foreground_threshold,alp
                 post_process_mask)
 class Script(scripts.Script):
     def title(self):
-        return "Ai Mask"
+        return "Auto Mask"
     def show(self, is_img2img):
         return is_img2img
     def ui(self, is_img2img):

@@ -8,8 +8,23 @@ import modules.scripts as scripts
 import gradio as gr
 
 
+def import_or_install(package,pip_name=None):
+    import importlib
+    import subprocess
+    if pip_name is None:
+        pip_name=package
+    try:
+        importlib.import_module(package)
+        print(f"{package} is already installed")
+    except ImportError:
+        print(f"{package} is not installed, installing now...")
+        subprocess.call(['pip', 'install', package])
+        print(f"{package} has been installed")
+
+
 def remove_background(image,alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,alpha_matting_erode_size,\
                       session_name,only_mask,post_process_mask):
+    import_or_install("rembg","rembg[gpu]")
     session=new_session(session_name)
     return remove(image,
                 alpha_matting, 

@@ -1,11 +1,11 @@
 from PIL import Image
-from rembg import remove, new_session
 import numpy as np
 
 from modules.processing import Processed, StableDiffusionProcessingImg2Img, process_images, images, fix_seed
 from modules.shared import opts, cmd_opts, state
 import modules.scripts as scripts
 import gradio as gr
+from fastapi import FastAPI, Body
 
 
 def import_or_install(package,pip_name=None):
@@ -25,6 +25,7 @@ def import_or_install(package,pip_name=None):
 def remove_background(image,alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,alpha_matting_erode_size,\
                       session_name,only_mask,post_process_mask):
     import_or_install("rembg","rembg[gpu]")
+    from rembg import remove, new_session
     session=new_session(session_name)
     return remove(image,
                 alpha_matting, 
@@ -69,3 +70,28 @@ class Script(scripts.Script):
         proc = process_images(p)
         proc.images.append(mask)
         return proc
+
+def auto_mask_api(_: gr.Blocks, app: FastAPI):
+    @app.get("/auto_mask/status")
+    async def get_status():
+        return {"status": "ok", "version": "1.0.0"}
+    @app.post("/auto_mask/remove-background")
+    async def post_remove_background(image_str: str = Body(...), alpha_matting: bool = Body(...), alpha_matting_foreground_threshold: int = Body(...),\
+                                alpha_matting_background_threshold: int = Body(...), alpha_matting_erode_size: int = Body(...), session_name: str = Body(...),\
+                                only_mask: bool = Body(...), post_process_mask: bool = Body(...)):
+        import base64
+        import io
+        image_bytes = base64.b64decode(image_str)
+        image = Image.open(io.BytesIO(image_bytes),formats=["PNG"])
+        mask=remove_background(image,alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,\
+                                                 alpha_matting_erode_size,session_name,only_mask,post_process_mask)
+        buffered = io.BytesIO()
+        mask.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue())
+        return {"mask": img_str}
+try:
+    import modules.script_callbacks as script_callbacks
+
+    script_callbacks.on_app_started(auto_mask_api)
+except:
+    pass

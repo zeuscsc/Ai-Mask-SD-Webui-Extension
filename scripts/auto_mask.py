@@ -79,6 +79,9 @@ def auto_mask_api(_: gr.Blocks, app: FastAPI):
     async def post_remove_background(image_str: str = Body(...), alpha_matting: bool = Body(...), alpha_matting_foreground_threshold: int = Body(...),\
                                 alpha_matting_background_threshold: int = Body(...), alpha_matting_erode_size: int = Body(...), session_name: str = Body(...),\
                                 only_mask: bool = Body(...), post_process_mask: bool = Body(...)):
+        import modules.shared as shared
+        if shared.tecky_auth.demo_available() is False:
+            return {"error": "Server Busy"}
         import base64
         import io
         image_bytes = base64.b64decode(image_str)

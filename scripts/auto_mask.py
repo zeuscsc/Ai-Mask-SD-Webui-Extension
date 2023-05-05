@@ -21,18 +21,20 @@ def import_or_install(package,pip_name=None):
         subprocess.call(['pip', 'install', package])
         print(f"{package} has been installed")
 
+import_or_install("rembg","rembg[gpu]")
+sessions=dict()
 
 def remove_background(image,alpha_matting,alpha_matting_foreground_threshold,alpha_matting_background_threshold,alpha_matting_erode_size,\
                       session_name,only_mask,post_process_mask):
-    import_or_install("rembg","rembg[gpu]")
     from rembg import remove, new_session
-    session=new_session(session_name)
+    if session_name not in sessions:
+        sessions[session_name]=new_session(session_name)
     return remove(image,
                 alpha_matting, 
                 alpha_matting_foreground_threshold, 
                 alpha_matting_background_threshold, 
                 alpha_matting_erode_size, 
-                session, 
+                sessions[session_name], 
                 only_mask,
                 post_process_mask)
 class Script(scripts.Script):

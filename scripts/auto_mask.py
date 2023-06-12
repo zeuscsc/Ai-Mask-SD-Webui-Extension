@@ -74,6 +74,9 @@ class Script(scripts.Script):
         return proc
 
 def auto_mask_api(_: gr.Blocks, app: FastAPI):
+    @app.get('/healthcheck', status_code=status.HTTP_200_OK)
+    def perform_healthcheck():
+        return {'healthcheck': 'Everything OK!'}
     @app.get("/auto_mask/status")
     async def get_status():
         return {"status": "ok", "version": "1.0.0"}
